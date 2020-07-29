@@ -15,13 +15,13 @@ def docx_ct(root, path):
     # for filename in os.walk(path=path):
     for filename in glob.glob("**/*.doc", recursive=True):
         # if filename.endswith('.doc'):
-        subprocess.call(['soffice', '--headless', '--convert-to', 'docx', filename])
+        subprocess.call(['soffice', '--headless', '--convert-to', 'docx', '--outdir', new_current_path, filename])
     for filename in glob.glob("**/*.odt", recursive=True):
         # if filename.endswith('.odt'):
-        subprocess.call(['soffice', '--headless', '--convert-to', 'docx', filename])
+        subprocess.call(['soffice', '--headless', '--convert-to', 'docx', '--outdir', new_current_path, filename])
     for filename in glob.glob("**/*.rtf", recursive=True):
         # if filename.endswith('.rtf'):
-        subprocess.call(['soffice', '--headless', '--convert-to', 'docx', filename])
+        subprocess.call(['soffice', '--headless', '--convert-to', 'docx', '--outdir', new_current_path, filename])
 
     # copy files in docx format in to new directory
     for directs, direct, files in os.walk(current_path):
