@@ -3,6 +3,7 @@ from converting_from_doc_to_docx import docx_ct
 from global_keys import *
 from key_words_for_segmentation_mri_reports import *
 from key_words_for_segmentation_ct_reports import *
+from export_authomatization import *
 
 from time import time
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     Запуск алгоритма конвертиции из .doc в .docx
     """
     # @line_profile
-    docx_ct(root, path_ct)
+    # docx_ct(root, path_ct)
     # docx_ct(root, path_mri)
 
     """
@@ -449,5 +450,11 @@ if __name__ == "__main__":
     #     p25.join()
     # end = time()
     # print(end - start)
+
+    """
+    exporting reports to server
+    """
+    export(export_link, root)
+
 
     pass
