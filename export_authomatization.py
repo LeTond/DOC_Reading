@@ -11,7 +11,7 @@ def export(link, root):
     opts = Options()
     opts.set_headless()
     assert opts.headless
-    file = open(root + '/log.txt', 'a')
+    file = open(root + '/test/log.txt', 'a')
     for fltr in os.listdir(root + '/test'):
         try:
             if ".docx" in fltr:
