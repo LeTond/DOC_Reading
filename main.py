@@ -61,6 +61,16 @@ if __name__ == "__main__":
     for pat in global_pathology_mri_list:
         Process_jobs = []
         for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
+            p = mp.Process(target=remove_segmented,
+                           args=(fltr, root, pat[1], pat[2]))
+            Process_jobs.append(p)
+            p.start()
+        for p in Process_jobs:
+            p.join()
+
+    for pat in global_pathology_mri_list:
+        Process_jobs = []
+        for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
             p = mp.Process(target=segment_else,
                            args=(fltr, root, pat[1]))
             Process_jobs.append(p)

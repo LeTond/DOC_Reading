@@ -18,6 +18,7 @@ def create_folder_area(path_: str, root: str):
     else:
         pass
 
+
 def create_folder_pathology(path_: str, root: str, key_name: str):
     new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
     try:
@@ -108,18 +109,23 @@ def contin_segmentation(fltr: str, root: str, key_for_: list, path_: str, key_na
         print(f"Необработанный документ: {fltr}")
     else:
         pass
+
+
+def remove_segmented(fltr: str, root: str, path_: str, key_name: str):
+    curr_path = root + '/' + path_.replace('//', '/')
+    new_path = curr_path + '/' + key_name
     if fltr in os.listdir(new_path):
         os.remove(curr_path + '/' + fltr)
 
 
 def segment_else(fltr: str, root: str, path_: str):
+    curr_path = root + '/' + path_.replace('//', '/')
+    path_else = curr_path + '/Прочее'
+    path2 = curr_path + '/' + fltr
     # Завершающий этап сортировки.........костыль
     try:
         # Отфильтровывает документы с расширением .docx
         if ".docx" in fltr:
-            curr_path = root + '/' + path_.replace('//', '/')
-            path_else = curr_path + '/Прочее'
-            path2 = curr_path + '/' + fltr
             conclusion = Document(path2)
             new_doc_step2 = docx.Document()
             # Вставляем путь для области исследования
