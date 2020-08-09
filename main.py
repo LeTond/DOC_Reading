@@ -32,7 +32,7 @@ def mri_preproc_start():
         create_folder_area(pat[1], root)
         for fltr in os.listdir(root + path_mri_copy):
             p = mp.Process(target=start_segmentation,
-                           args=(fltr, root, key_words_for_remove, key_head_words, path_mri_copy, pat[0], pat[1]))
+                           args=(fltr, root, path_mri_copy, pat[0], pat[1]))
             Process_jobs.append(p)
             p.start()
         for p in Process_jobs:
@@ -45,12 +45,16 @@ def mri_preproc_start():
         Process_jobs = []
         for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
             p = mp.Process(target=contin_segmentation,
-                           args=(fltr, root, pat[0], pat[1], pat[2]))
+                           args=(fltr, root, key_words_for_remove, key_head_words, pat[0], pat[1], pat[2]))
             Process_jobs.append(p)
             p.start()
         for p in Process_jobs:
             p.join()
+    end = time()
+    print(end - start)
 
+def mri_preproc_end():
+    start = time()
     for pat in global_pathology_mri_list:
         Process_jobs = []
         for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
@@ -65,7 +69,7 @@ def mri_preproc_start():
         Process_jobs = []
         for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
             p = mp.Process(target=segment_else,
-                           args=(fltr, root, pat[1]))
+                           args=(fltr, root, key_words_for_remove, key_head_words, pat[1]))
             Process_jobs.append(p)
             p.start()
         for p in Process_jobs:
@@ -139,6 +143,7 @@ if __name__ == "__main__":
     Processing MRI reports
     """
     mri_preproc_start()
+    mri_preproc_end()
 
 
 

@@ -7,7 +7,7 @@
 from docx import Document
 import os
 import docx
-
+import shutil
 
 
 def create_folder_area(path_: str, root: str):
@@ -30,11 +30,9 @@ def create_folder_pathology(path_: str, root: str, key_name: str):
         pass
 
 
-def start_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_head_words: tuple, path: str,
-                       key_for_area: list, path_: str):
+def start_segmentation(fltr: str, root: str, path: str, key_for_area: list, path_: str):
     set_list_list = []
     control_set = [k for k in range(len(key_for_area))]
-
     new_path = root + '/' + path_.replace('//', '/')
     try:
         # Отфильтровывает документы с расширением .docx
@@ -50,37 +48,16 @@ def start_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_he
                             set_list_list.append(i)
                             break
                 if set(set_list_list) == set(control_set):
-
-
-                    new_doc_step1 = docx.Document()
-                    for parag_ in range(len(conclusion.paragraphs)):
-                        # Отфильтровываем всё до параграфа со словом пациент ...
-                        for key_word in key_head_words:
-                            if key_word in conclusion.paragraphs[parag_].text \
-                                    or key_word.capitalize() in conclusion.paragraphs[parag_].text:
-                                for index_key_word in range(parag_):
-                                    conclusion.paragraphs[index_key_word].text = None
-                        # Отфильтровываем, параграфы со словами врач и тд.....
-                        for remove_key in key_words_for_remove:
-                            if remove_key in conclusion.paragraphs[parag_].text \
-                                    or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
-                                conclusion.paragraphs[parag_].text = None
-
-
-                    for pg in range(len(conclusion.paragraphs)):
-                        if conclusion.paragraphs[pg].text == "":
-                            pass
-                        else:
-                            new_doc_step1.add_paragraph(conclusion.paragraphs[pg].text)
-                    # Сохраняем docx со старым названием + (new) по новому пути в папку
-                    new_doc_step1.save(new_path + '/' + '(new)' + fltr)
+                    new_current_path = new_path + '/' + '(new)' + fltr
+                    shutil.copy(path2, new_current_path)
     except ValueError:
         print(f"Необработанный документ: {fltr}")
     else:
         pass
 
 
-def contin_segmentation(fltr: str, root: str, key_for_: list, path_: str, key_name: str):
+def contin_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_head_words: tuple,
+                        key_for_: list, path_: str, key_name: str):
     set_list_list = []
     control_set = [k for k in range(len(key_for_))]
     curr_path = root + '/' + path_.replace('//', '/')
@@ -98,35 +75,29 @@ def contin_segmentation(fltr: str, root: str, key_for_: list, path_: str, key_na
                         if key_for_[i][j] in para.text or key_for_[i][j].capitalize() in para.text:
                             set_list_list.append(i)
                             break
-                if set(set_list_list) == set(control_set):
-
-
-                    # new_doc_step1 = docx.Document()
-                    # for parag_ in range(len(conclusion.paragraphs)):
-                    #     # Отфильтровываем всё до параграфа со словом пациент ...
-                    #     for key_word in key_head_words:
-                    #         if key_word in conclusion.paragraphs[parag_].text \
-                    #                 or key_word.capitalize() in conclusion.paragraphs[parag_].text:
-                    #             for index_key_word in range(parag_):
-                    #                 conclusion.paragraphs[index_key_word].text = None
-                    #     # Отфильтровываем, параграфы со словами врач и тд.....
-                    #     for remove_key in key_words_for_remove:
-                    #         if remove_key in conclusion.paragraphs[parag_].text \
-                    #                 or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
-                    #             conclusion.paragraphs[parag_].text = None
-                    #
-
-
-                    # Вставляем путь для области исследования
-                    text = f"{path_} \n {key_name} \n -report-text-below-"
-                    new_doc_step1.add_paragraph(text)
-                    # Создаем новый текстовый документ на базе предыдущего без включения пустых параграфов
-                    for pg in range(len(conclusion.paragraphs)):
-                        if conclusion.paragraphs[pg].text == "":
-                            pass
-                        else:
-                            new_doc_step1.add_paragraph(conclusion.paragraphs[pg].text)
-                    # Сохраняем docx со старым названием по новому пути в папку
+            new_doc_step1 = docx.Document()
+            if set(set_list_list) == set(control_set):
+                for parag_ in range(len(conclusion.paragraphs)):
+                    # Отфильтровываем всё до параграфа со словом пациент ...
+                    for key_word in key_head_words:
+                        if key_word in conclusion.paragraphs[parag_].text \
+                                or key_word.capitalize() in conclusion.paragraphs[parag_].text:
+                            for index_key_word in range(parag_):
+                                conclusion.paragraphs[index_key_word].text = None
+                    # Отфильтровываем, параграфы со словами врач и тд.....
+                    for remove_key in key_words_for_remove:
+                        if remove_key in conclusion.paragraphs[parag_].text \
+                                or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
+                            conclusion.paragraphs[parag_].text = None
+                # Вставляем путь для области исследования
+                text = f"{path_} \n {key_name} \n -report-text-below-"
+                new_doc_step1.add_paragraph(text)
+                # Создаем новый текстовый документ на базе предыдущего без включения пустых параграфов
+                for pg in range(len(conclusion.paragraphs)):
+                    if conclusion.paragraphs[pg].text == "":
+                        pass
+                    else:
+                        new_doc_step1.add_paragraph(conclusion.paragraphs[pg].text)
                     new_doc_step1.save(new_path + '/' + fltr)
     except ValueError:
         print(f"Необработанный документ: {fltr}")
@@ -141,7 +112,7 @@ def remove_segmented(fltr: str, root: str, path_: str, key_name: str):
         os.remove(curr_path + '/' + fltr)
 
 
-def segment_else(fltr: str, root: str, path_: str):
+def segment_else(fltr: str, root: str, key_words_for_remove: tuple, key_head_words: tuple, path_: str):
     curr_path = root + '/' + path_.replace('//', '/')
     path_else = curr_path + '/Прочее'
     path2 = curr_path + '/' + fltr
@@ -151,6 +122,21 @@ def segment_else(fltr: str, root: str, path_: str):
         if ".docx" in fltr:
             conclusion = Document(path2)
             new_doc_step2 = docx.Document()
+            # Фильтруем текст по ключемым словам
+
+            for parag_ in range(len(conclusion.paragraphs)):
+                # Отфильтровываем всё до параграфа со словом пациент ...
+                for key_word in key_head_words:
+                    if key_word in conclusion.paragraphs[parag_].text \
+                            or key_word.capitalize() in conclusion.paragraphs[parag_].text:
+                        for index_key_word in range(parag_):
+                            conclusion.paragraphs[index_key_word].text = None
+                # Отфильтровываем, параграфы со словами врач и тд.....
+                for remove_key in key_words_for_remove:
+                    if remove_key in conclusion.paragraphs[parag_].text \
+                            or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
+                        conclusion.paragraphs[parag_].text = None
+
             # Вставляем путь для области исследования
             text = f"{path_} \n Прочее \n -report-text-below-"
             new_doc_step2.add_paragraph(text)
