@@ -9,6 +9,7 @@ import os
 import docx
 
 
+
 def create_folder_area(path_: str, root: str):
     new_path = root + '/' + path_.replace('//', '/')
     try:
@@ -22,8 +23,7 @@ def create_folder_area(path_: str, root: str):
 def create_folder_pathology(path_: str, root: str, key_name: str):
     new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
     try:
-        os.mkdir(new_path)
-
+        os.makedirs(new_path)
     except FileExistsError:
         print(f"Такая папка существует: {new_path}")
     else:
@@ -48,7 +48,10 @@ def start_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_he
                     for j in range(len(key_for_area[i])):
                         if key_for_area[i][j] in para.text or key_for_area[i][j].capitalize() in para.text:
                             set_list_list.append(i)
+                            break
                 if set(set_list_list) == set(control_set):
+
+
                     new_doc_step1 = docx.Document()
                     for parag_ in range(len(conclusion.paragraphs)):
                         # Отфильтровываем всё до параграфа со словом пациент ...
@@ -62,6 +65,8 @@ def start_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_he
                             if remove_key in conclusion.paragraphs[parag_].text \
                                     or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
                                 conclusion.paragraphs[parag_].text = None
+
+
                     for pg in range(len(conclusion.paragraphs)):
                         if conclusion.paragraphs[pg].text == "":
                             pass
@@ -92,8 +97,26 @@ def contin_segmentation(fltr: str, root: str, key_for_: list, path_: str, key_na
                     for j in range(len(key_for_[i])):
                         if key_for_[i][j] in para.text or key_for_[i][j].capitalize() in para.text:
                             set_list_list.append(i)
+                            break
                 if set(set_list_list) == set(control_set):
-                    new_doc_step1 = docx.Document()
+
+
+                    # new_doc_step1 = docx.Document()
+                    # for parag_ in range(len(conclusion.paragraphs)):
+                    #     # Отфильтровываем всё до параграфа со словом пациент ...
+                    #     for key_word in key_head_words:
+                    #         if key_word in conclusion.paragraphs[parag_].text \
+                    #                 or key_word.capitalize() in conclusion.paragraphs[parag_].text:
+                    #             for index_key_word in range(parag_):
+                    #                 conclusion.paragraphs[index_key_word].text = None
+                    #     # Отфильтровываем, параграфы со словами врач и тд.....
+                    #     for remove_key in key_words_for_remove:
+                    #         if remove_key in conclusion.paragraphs[parag_].text \
+                    #                 or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
+                    #             conclusion.paragraphs[parag_].text = None
+                    #
+
+
                     # Вставляем путь для области исследования
                     text = f"{path_} \n {key_name} \n -report-text-below-"
                     new_doc_step1.add_paragraph(text)
