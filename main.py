@@ -6,7 +6,6 @@ from key_words_for_segmentation_ct_reports import *
 from export_authomatization import *
 from functools import lru_cache
 from time import time
-from multiprocessing import Pool
 from collections import deque
 
 import multiprocessing as mp
@@ -43,9 +42,9 @@ def mri_preproc_start():
 
     for pat in global_pathology_mri_list:
         Process_jobs = []
-        for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
+        for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
             p = mp.Process(target=contin_segmentation,
-                           args=(fltr, root, key_words_for_remove, key_head_words, pat[0], pat[1], pat[2]))
+                           args=(fltr, root, key_words_for_remove, key_head_words, pat[0], pat[1], pat[2], pat[3]))
             Process_jobs.append(p)
             p.start()
         for p in Process_jobs:
@@ -55,11 +54,12 @@ def mri_preproc_start():
 
 def mri_preproc_end():
     start = time()
+
     for pat in global_pathology_mri_list:
         Process_jobs = []
-        for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
+        for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
             p = mp.Process(target=remove_segmented,
-                           args=(fltr, root, pat[1], pat[2]))
+                           args=(fltr, root, pat[1], pat[2], pat[3]))
             Process_jobs.append(p)
             p.start()
         for p in Process_jobs:
@@ -67,13 +67,14 @@ def mri_preproc_end():
 
     for pat in global_pathology_mri_list:
         Process_jobs = []
-        for fltr in os.listdir(root + '/' + pat[1].replace('//', '/')):
+        for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
             p = mp.Process(target=segment_else,
                            args=(fltr, root, key_words_for_remove, key_head_words, pat[1]))
             Process_jobs.append(p)
             p.start()
         for p in Process_jobs:
             p.join()
+
     end = time()
     print(end - start)
 

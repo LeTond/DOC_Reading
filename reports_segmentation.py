@@ -57,11 +57,11 @@ def start_segmentation(fltr: str, root: str, path: str, key_for_area: list, path
 
 
 def contin_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_head_words: tuple,
-                        key_for_: list, path_: str, key_name: str):
+                        key_for_: list, path_: str, key_name: str, corn_path: str):
     set_list_list = []
     control_set = [k for k in range(len(key_for_))]
-    curr_path = root + '/' + path_.replace('//', '/')
-    new_path = curr_path + '/' + key_name
+    curr_path = root + '/' + corn_path.replace('//', '/')
+    new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
     try:
         # Отфильтровывает документы с расширением .docx
         if ".docx" in fltr:
@@ -105,9 +105,9 @@ def contin_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_h
         pass
 
 
-def remove_segmented(fltr: str, root: str, path_: str, key_name: str):
-    curr_path = root + '/' + path_.replace('//', '/')
-    new_path = curr_path + '/' + key_name
+def remove_segmented(fltr: str, root: str, path_: str, key_name: str, corn_path: str):
+    curr_path = root + '/' + corn_path.replace('//', '/')
+    new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
     if fltr in os.listdir(new_path):
         os.remove(curr_path + '/' + fltr)
 
