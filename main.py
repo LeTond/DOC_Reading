@@ -50,6 +50,9 @@ def mri_preproc_start():
     end = time()
     print(end - start)
 
+# TODO: Подумать над счетчиком
+# TODO: Допилить Прочее
+
 def mri_preproc_end():
     start = time()
 
@@ -112,3 +115,5 @@ if __name__ == "__main__":
     #         print(os.path.join(dirpath, dirname))
 
     pass
+
+
