@@ -24,8 +24,9 @@ def create_folder_pathology(path_: str, root: str, key_name: str):
     new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
     try:
         os.makedirs(new_path)
+        os.mkdir(root + '/' + path_.replace('//', '/') + '/Прочее')
     except FileExistsError:
-        print(f"Такая папка существует: {new_path}")
+        print(f"")
     else:
         pass
 

@@ -7,7 +7,7 @@ import shutil
 import subprocess
 
 
-def docx_ct(root, path):
+def docx_(root, path):
     current_path = root + path
     os.chdir(current_path)
     new_current_path = current_path + 'copy'
