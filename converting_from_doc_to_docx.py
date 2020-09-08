@@ -10,7 +10,7 @@ import subprocess
 def docx_(root, path):
     current_path = root + path
     os.chdir(current_path)
-    new_current_path = current_path + 'copy'
+    new_current_path = current_path + '_copy'
     os.mkdir(new_current_path)
     # for filename in os.walk(path=path):
     for filename in glob.glob("**/*.doc", recursive=True):

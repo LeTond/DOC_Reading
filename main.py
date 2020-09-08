@@ -1,12 +1,13 @@
 from reports_segmentation import *
 from converting_from_doc_to_docx import docx_
 from global_keys import *
-from key_words_for_segmentation_mri_reports import *
+from key_words_HEAD_mri import *
 from key_words_for_segmentation_ct_reports import *
 from export_authomatization import *
 from functools import lru_cache
 from time import time
 from collections import deque
+# from numba import jit, cuda
 
 import multiprocessing as mp
 
@@ -24,6 +25,7 @@ def line_profile(func):
 
 
 # @lru_cache(maxsize=64)
+# @jit(target ="cuda")
 def mri_preproc_start():
     start = time()
     for pat in key_for_area_list:
@@ -39,20 +41,13 @@ def mri_preproc_start():
 
     for pat in global_pathology_mri_list:
         create_folder_pathology(pat[1], root, pat[2])
-        Process_jobs = []
         for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
-            p = mp.Process(target=contin_segmentation,
-                           args=(fltr, root, key_words_for_remove, key_head_words, pat[0], pat[1], pat[2], pat[3]))
-            Process_jobs.append(p)
-            p.start()
-        for p in Process_jobs:
-            p.join()
+            contin_segmentation(fltr, root, key_words_for_remove, key_head_words, pat[0], pat[1], pat[2], pat[3])
     end = time()
     print(end - start)
 
-# TODO: Подумать над счетчиком
-# TODO: Допилить Прочее
 
+# @jit(target ="cuda")
 def mri_preproc_end():
     start = time()
 
@@ -88,18 +83,19 @@ def ct_preproc_start():
     #                                                     ct_key_for_hip, ct_structure_hip, ct_key_name_hip))
     pass
 
+
 if __name__ == "__main__":
     """
     Запуск алгоритма конвертиции из .doc в .docx
     """
     # @line_profile
-    # docx_ct(root, path_ct)
-    # docx_ct(root, path_mri)
+    # docx_(root, path_mri)
+    # docx_(root, path_ct)
     """
     Processing MRI reports
     """
     mri_preproc_start()
-    mri_preproc_end()
+    # mri_preproc_end()
     """
     Processing CT reports
     """
@@ -115,5 +111,3 @@ if __name__ == "__main__":
     #         print(os.path.join(dirpath, dirname))
 
     pass
-
-

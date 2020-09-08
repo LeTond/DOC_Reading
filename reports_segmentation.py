@@ -1,6 +1,5 @@
 """
 Сегментируем МРТ, КТ, Рентген исследования.
-Создаем два каталога и сохраняем в них рассортированные и обработанные заключения.
 Удаляем шапку заключения, ФИО пациента, Дату рождения, область исследования, ФИО Врача
 """
 
@@ -25,6 +24,7 @@ def create_folder_pathology(path_: str, root: str, key_name: str):
     try:
         os.makedirs(new_path)
         os.mkdir(root + '/' + path_.replace('//', '/') + '/Прочее')
+        os.mkdir(root + '/' + path_.replace('//', '/') + '/Trash')
     except FileExistsError:
         print(f"")
     else:
@@ -56,50 +56,63 @@ def start_segmentation(fltr: str, root: str, path: str, key_for_area: list, path
     else:
         pass
 
-
 def contin_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_head_words: tuple,
                         key_for_: list, path_: str, key_name: str, corn_path: str):
+    zacl = ['ЗАКЛЮЧЕНИЕ', 'ЗАКЛЮЧЕНИЕ:', 'заключение', 'заключение:']
+    inline_paragraph = 0
     set_list_list = []
     control_set = [k for k in range(len(key_for_))]
     curr_path = root + '/' + corn_path.replace('//', '/')
     new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
+    counter = len(os.listdir(root + '/' + path_.replace('//', '/') + '/' + key_name))
     try:
-        # Отфильтровывает документы с расширением .docx
         if ".docx" in fltr:
             path2 = curr_path + '/' + fltr
             conclusion = Document(path2)
             # Фильтруем текст по ключемым словам
-            for para in conclusion.paragraphs:
+            for para in range(len(conclusion.paragraphs)):
                 # Фильтрация по ключу
+                for prob in zacl:
+                    if prob in conclusion.paragraphs[para].text \
+                            or prob.capitalize() in conclusion.paragraphs[para].text:
+                        inline_paragraph = para
+                        break
+            for para in range(inline_paragraph, len(conclusion.paragraphs)):
                 for i in range(len(key_for_)):
                     for j in range(len(key_for_[i])):
-                        if key_for_[i][j] in para.text or key_for_[i][j].capitalize() in para.text:
+                        if key_for_[i][j] in conclusion.paragraphs[para].text \
+                                or key_for_[i][j].capitalize() in conclusion.paragraphs[para].text:
                             set_list_list.append(i)
                             break
             new_doc_step1 = docx.Document()
             if set(set_list_list) == set(control_set):
-                for parag_ in range(len(conclusion.paragraphs)):
-                    # Отфильтровываем всё до параграфа со словом пациент ...
-                    for key_word in key_head_words:
-                        if key_word in conclusion.paragraphs[parag_].text \
-                                or key_word.capitalize() in conclusion.paragraphs[parag_].text:
-                            for index_key_word in range(parag_):
-                                conclusion.paragraphs[index_key_word].text = None
-                    # Отфильтровываем, параграфы со словами врач и тд.....
-                    for remove_key in key_words_for_remove:
-                        if remove_key in conclusion.paragraphs[parag_].text \
-                                or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
-                            conclusion.paragraphs[parag_].text = None
-                # Вставляем путь для области исследования
-                text = f"{path_} \n {key_name} \n -report-text-below-"
-                new_doc_step1.add_paragraph(text)
-                # Создаем новый текстовый документ на базе предыдущего без включения пустых параграфов
-                for pg in range(len(conclusion.paragraphs)):
-                    if conclusion.paragraphs[pg].text == "":
-                        pass
-                    else:
-                        new_doc_step1.add_paragraph(conclusion.paragraphs[pg].text)
-                    new_doc_step1.save(new_path + '/' + fltr)
+                if counter < 20 or key_name == 'Прочее':
+                    for parag_ in range(len(conclusion.paragraphs)):
+                        # Отфильтровываем всё до параграфа со словом пациент ...
+                        for key_word in key_head_words:
+                            if key_word in conclusion.paragraphs[parag_].text \
+                                    or key_word.capitalize() in conclusion.paragraphs[parag_].text:
+                                for index_key_word in range(parag_):
+                                    conclusion.paragraphs[index_key_word].text = None
+                        # Отфильтровываем, параграфы со словами врач и тд.....
+                        for remove_key in key_words_for_remove:
+                            if remove_key in conclusion.paragraphs[parag_].text \
+                                    or remove_key.capitalize() in conclusion.paragraphs[parag_].text:
+                                conclusion.paragraphs[parag_].text = None
+                    # Вставляем путь для области исследования
+                    text = f"{path_} \n {key_name} \n -report-text-below-"
+                    new_doc_step1.add_paragraph(text)
+                    # Создаем новый текстовый документ на базе предыдущего без включения пустых параграфов
+                    for pg in range(len(conclusion.paragraphs)):
+                        if conclusion.paragraphs[pg].text == "":
+                            pass
+                        else:
+                            new_doc_step1.add_paragraph(conclusion.paragraphs[pg].text.lstrip())
+                        new_doc_step1.save(new_path + '/' + fltr)
+                elif counter >= 20 and key_name != 'Прочее':
+                    new_current_path = root + '/' + path_.replace('//', '/') + '/Trash/' + fltr
+                    shutil.copy(path2, new_current_path)
+
     except ValueError:
         print(f"Необработанный документ: {fltr}")
     else:
@@ -109,7 +122,8 @@ def contin_segmentation(fltr: str, root: str, key_words_for_remove: tuple, key_h
 def remove_segmented(fltr: str, root: str, path_: str, key_name: str, corn_path: str):
     curr_path = root + '/' + corn_path.replace('//', '/')
     new_path = root + '/' + path_.replace('//', '/') + '/' + key_name
-    if fltr in os.listdir(new_path):
+    trash = root + '/' + path_.replace('//', '/') + '/Trash'
+    if fltr in os.listdir(new_path) or fltr in os.listdir(trash):
         os.remove(curr_path + '/' + fltr)
 
 
