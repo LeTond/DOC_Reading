@@ -1,13 +1,17 @@
-from reports_segmentation import *
-from converting_from_doc_to_docx import docx_
-from global_keys import *
-from key_words_HEAD_mri import *
-from key_words_for_segmentation_ct_reports import *
-from export_authomatization import *
-from functools import lru_cache
+from Algorithm.reports_segmentation import *
+from Algorithm.doc_renamer import *
+from Keys.global_keys import *
+
+from Algorithm.converting_from_doc_to_docx import docx_
+
+# from Keys.key_words_HEAD_mri import *
+# from Keys.key_words_JOINTS_mri import *
+from Keys.key_words_SPINE_mri import *
+# from Keys.key_words_PELVIS_mri import *
+
+from Algorithm.export_authomatization import *
 from time import time
 from collections import deque
-# from numba import jit, cuda
 
 import multiprocessing as mp
 
@@ -24,90 +28,87 @@ def line_profile(func):
     return wrapper
 
 
-# @lru_cache(maxsize=64)
-# @jit(target ="cuda")
-def mri_preproc_start():
-    start = time()
+def mri_start_mkdirs():
+    """
+    Запуск создания директорий и начала сегментации документов
+    :return: None
+    """
     for pat in key_for_area_list:
-        Process_jobs = deque()
+        process_jobs = deque()
         create_folder_area(pat[1], root)
-        for fltr in os.listdir(root + path_mri_copy):
+        for prepared_document in os.listdir(root + path_mri_copy):
             p = mp.Process(target=start_segmentation,
-                           args=(fltr, root, path_mri_copy, pat[0], pat[1]))
-            Process_jobs.append(p)
+                           args=(prepared_document, root, path_mri_copy, pat[0], pat[1]))
+            process_jobs.append(p)
             p.start()
-        for p in Process_jobs:
+        for p in process_jobs:
             p.join()
 
+
+def mri_start_preprocess():
+    """
+    Запуск создания папок по названию ключевого слова,
+    фильтрации документов,
+    удаления шапок и подписей в документах
+    :return: None
+    """
     for pat in global_pathology_mri_list:
         create_folder_pathology(pat[1], root, pat[2])
-        for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
-            contin_segmentation(fltr, root, key_words_for_remove, key_head_words, pat[0], pat[1], pat[2], pat[3])
-    end = time()
-    print(end - start)
+        for prepared_document in os.listdir(root + '/' + pat[3].replace('//', '/')):
+            continue_segmentation(
+                prepared_document, root, key_words_for_remove, pat[0], pat[1], pat[2], pat[3], conclusion_key_words
+            )
 
 
-# @jit(target ="cuda")
-def mri_preproc_end():
+def mri_start_preprocess_end():
+    """
+    Запуск удаления  "избыточных" документов и сегментирование "Прочих" патологий
+    :return:
+    """
     start = time()
 
     for pat in global_pathology_mri_list:
-        Process_jobs = []
-        for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
+        process_jobs = []
+        for prepared_document in os.listdir(root + '/' + pat[3].replace('//', '/')):
             p = mp.Process(target=remove_segmented,
-                           args=(fltr, root, pat[1], pat[2], pat[3]))
-            Process_jobs.append(p)
+                           args=(prepared_document, root, pat[1], pat[2], pat[3]))
+            process_jobs.append(p)
             p.start()
-        for p in Process_jobs:
+        for p in process_jobs:
             p.join()
 
     for pat in global_pathology_mri_list:
-        Process_jobs = []
-        for fltr in os.listdir(root + '/' + pat[3].replace('//', '/')):
+        process_jobs = []
+        for prepared_document in os.listdir(root + '/' + pat[3].replace('//', '/')):
             p = mp.Process(target=segment_else,
-                           args=(fltr, root, key_words_for_remove, key_head_words, pat[1]))
-            Process_jobs.append(p)
+                           args=(prepared_document, root, key_words_for_remove, pat[1]))
+            process_jobs.append(p)
             p.start()
-        for p in Process_jobs:
+        for p in process_jobs:
             p.join()
 
     end = time()
     print(end - start)
-
-
-def ct_preproc_start():
-    # start = time()
-    # Process_jobs = []
-    # for fltr in os.listdir(root + path_ct):
-    #     p = mp.Process(target=start_segmentation, args=(fltr, root, key_words_for_remove, key_head_words, path_ct,
-    #                                                     ct_key_for_hip, ct_structure_hip, ct_key_name_hip))
-    pass
 
 
 if __name__ == "__main__":
     """
-    Запуск алгоритма конвертиции из .doc в .docx
+    Запуск алгоритма конвертации из .doc в .docx
     """
     # @line_profile
     # docx_(root, path_mri)
-    # docx_(root, path_ct)
     """
     Processing MRI reports
     """
-    mri_preproc_start()
-    # mri_preproc_end()
-    """
-    Processing CT reports
-    """
-    # ct_preproc_start()
+    # mri_start_mkdirs()
+    # mri_start_preprocess()
+    # mri_start_preprocess_end()
     """
     exporting reports to server
     """
-    # export(export_link, root)
+    # export(export_link, root, recursion_way)
 
-    # for dirpath, dirnames, filenames in os.walk('/home/lg/Dropbox/Conclusion/MEDICAL REPORTS/МРТ Тексты'):
-    #     # перебрать каталоги
-    #     for dirname in dirnames:
-    #         print(os.path.join(dirpath, dirname))
-
-    pass
+    """
+    rename dicom document
+    """
+    # rename_file('/home/lg/ITMO/New_21_22_23/00023/', list_file_to_dcm('/home/lg/ITMO/New_21_22_23/00023/'))
